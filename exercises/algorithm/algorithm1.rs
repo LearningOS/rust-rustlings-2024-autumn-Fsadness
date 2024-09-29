@@ -25,6 +25,9 @@ impl<T> Node<T> {
 #[derive(Debug)]
 struct LinkedList<T> {
     length: u32,
+    // 链表元素提取(已知Some(node))): unsafe { &node.as_ref().val }
+    // 链表元素提取(直接指针操作):     unsafe { &(*node.as_ptr()).val }
+    //                             unsafe { (*node.as_ptr()).next }
     start: Option<NonNull<Node<T>>>,
     end: Option<NonNull<Node<T>>>,
 }
@@ -70,13 +73,43 @@ impl<T> LinkedList<T> {
         }
     }
 	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
+    where
+        T: Clone + PartialOrd,  // 能够归并排序需要T能够排序与克隆
 	{
-		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
+        let mut list_merged = LinkedList::new();
+        let mut iter_a = list_a.start;
+        let mut iter_b = list_b.start;
+
+        while iter_a != None || iter_b != None {    // 可以用iter.is_some()替换
+            match (iter_a, iter_b) {
+                (Some(node_a), Some(node_b)) => {
+                    // 已知存在node, 使用as_ref(), 用&进行引用(未使用Copy Trait)
+                    let val_a = unsafe { &node_a.as_ref().val };
+                    let val_b = unsafe { &node_b.as_ref().val };
+                    if val_a <= val_b {
+                        // 使用clone为新链表节点分配所有权, 避免引用
+                        list_merged.add(val_a.clone());
+                        iter_a = unsafe { (*node_a.as_ptr()).next };
+                    } else {
+                        list_merged.add(val_b.clone());
+                        iter_b = unsafe { (*node_b.as_ptr()).next };
+                    }
+                }
+                (Some(node_a), None) => {
+                    let val_a = unsafe { &node_a.as_ref().val };
+                    list_merged.add(val_a.clone());
+                    iter_a = unsafe { (*node_a.as_ptr()).next };
+                }
+                (None, Some(node_b)) => {
+                    let val_b = unsafe { &node_b.as_ref().val };
+                    list_merged.add(val_b.clone());
+                    iter_b = unsafe { (*node_b.as_ptr()).next };
+                }
+                _ => {}
+            }
         }
+
+        list_merged
 	}
 }
 
