@@ -73,7 +73,40 @@ impl<T> LinkedList<T> {
         }
     }
 	pub fn reverse(&mut self){
-		// TODO
+        // iter_1 -> iter_2 -> iter_3(may None)
+        let mut iter_1 = self.start;
+        let mut iter_2;
+        let mut iter_3;
+
+        match iter_1 {
+            None => return, // self.length = 0;
+            Some(node) => {
+                iter_2 = unsafe { (*node.as_ptr()).next };
+            }
+        };
+
+        match iter_2 {
+            None => return, // self.length = 1;
+            Some(node) => iter_3 = unsafe { (*node.as_ptr()).next }
+        };
+
+        // 预处理self.start与self.end
+        self.start = self.end;
+        self.end = iter_1;
+        unsafe { (*iter_1.unwrap().as_ptr()).next = None }; // 终止条件(经典忘记环节)
+
+        // reverse
+        loop {
+            unsafe { (*iter_2.unwrap().as_ptr()).next = iter_1 };
+            match iter_3 {
+                None => break, // iter_2 id the end;
+                Some(node) => {
+                    iter_1 = iter_2;
+                    iter_2 = iter_3;
+                    iter_3 = unsafe { (*node.as_ptr()).next }
+                }
+            }
+        }
 	}
 }
 
