@@ -8,7 +8,8 @@
 fn main() {
     let mut res = 42;
     let option = Some(12);
-    for x in option {
+    // for x in option { // 可读性差
+    if let Some(x) = option {
         res += x;
     }
     println!("{}", res);
