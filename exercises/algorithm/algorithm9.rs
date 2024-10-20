@@ -2,7 +2,6 @@
 	heap
 	This question requires you to implement a binary heap function
 */
-// I AM NOT DONE
 
 use std::cmp::Ord;
 use std::default::Default;
@@ -38,6 +37,20 @@ where
 
     pub fn add(&mut self, value: T) {
         //TODO
+        self.items.push(value);
+        self.count += 1;
+        let mut current_idx = self.count;
+
+        while (self.comparator)(
+                    &self.items[current_idx], 
+                    &self.items[self.parent_idx(current_idx)]) && 
+                current_idx != 1 {
+            let idx1 = current_idx;
+            let idx2 = self.parent_idx(current_idx);
+            self.items.swap(idx1, idx2);
+
+            current_idx = self.parent_idx(current_idx);
+        }
     }
 
     fn parent_idx(&self, idx: usize) -> usize {
@@ -58,7 +71,20 @@ where
 
     fn smallest_child_idx(&self, idx: usize) -> usize {
         //TODO
-		0
+		let left_child_idx = self.left_child_idx(idx);
+        let right_child_idx = self.right_child_idx(idx);
+
+        if right_child_idx <= self.count {
+            if (self.comparator)(
+                    &self.items[left_child_idx], 
+                    &self.items[right_child_idx]) {
+                left_child_idx
+            } else {
+                right_child_idx
+            }
+        } else {
+            left_child_idx
+        }
     }
 }
 
@@ -85,7 +111,26 @@ where
 
     fn next(&mut self) -> Option<T> {
         //TODO
-		None
+        if self.count == 0 {
+            return None;
+        }
+
+        self.items.swap(1, self.count);
+        let next_value = self.items.pop();
+        self.count -= 1;
+        let mut current_idx = 1;
+        
+        while self.left_child_idx(current_idx) <= self.count &&
+            !(self.comparator)(
+                    &self.items[current_idx], 
+                    &self.items[self.smallest_child_idx(current_idx)]) {
+            let idx1 = current_idx;
+            let idx2 = self.smallest_child_idx(current_idx);
+            self.items.swap(idx1, idx2);
+
+            current_idx = self.smallest_child_idx(current_idx);
+        }
+        next_value
     }
 }
 
